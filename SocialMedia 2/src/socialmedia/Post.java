@@ -1,24 +1,20 @@
 package socialmedia;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Post {
 
     private static int idCounter = 0;
-    private String text;
-    private int id;
-    private int likes;
-    private Account account;
-    private boolean endorsement = false;
+    private String message;
+    private final int id;
+    private final Account account;
+    private final boolean endorsement;
+    public List<Comment> comments = new ArrayList<Comment>();
 
-    public Post(String text, Account account) {
-        this.text = text;
+    public Post(String message, Account account, boolean endorsement) {
+        this.message = message;
         this.id = idCounter++;
-        this.likes = 0;
-        this.account = account;
-    }
-    public Post(String text, Account account, boolean endorsement) {
-        this.text = text;
-        this.id = idCounter++;
-        this.likes = 0;
         this.account = account;
         this.endorsement = endorsement;
     }
@@ -29,7 +25,7 @@ public class Post {
         return endorsement;
     }
     public String getMessage() {
-        return text;
+        return message;
     }
     public String getHandle() {
         return account.getHandle();

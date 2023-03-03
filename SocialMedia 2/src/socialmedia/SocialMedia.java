@@ -17,6 +17,20 @@ public class SocialMedia implements SocialMediaPlatform {
     @Override
     public int createAccount(String handle) throws IllegalHandleException, InvalidHandleException {
 
+        /*
+         * The method creates an account in the platform with the given handle.
+         * <p>
+         * The state of this SocialMediaPlatform must be be unchanged if any exceptions
+         * are thrown.
+         *
+         * @param handle account's handle.
+         * @throws IllegalHandleException if the handle already exists in the platform.
+         * @throws InvalidHandleException if the new handle is empty, has more than 30
+         *                                characters, or has white spaces.
+         * @return the ID of the created account.
+         *
+         */
+
         if (handle == null) {
             throw new InvalidHandleException("Invalid handle");
         }
@@ -44,6 +58,21 @@ public class SocialMedia implements SocialMediaPlatform {
     @Override
     public int createAccount(String handle, String description) throws IllegalHandleException, InvalidHandleException {
 
+        /*
+         * The method creates an account in the platform with the given handle and
+         * description.
+         * <p>
+         * The state of this SocialMediaPlatform must be be unchanged if any exceptions
+         * are thrown.
+         *
+         * @param handle      account's handle.
+         * @param description account's description.
+         * @throws IllegalHandleException if the handle already exists in the platform.
+         * @throws InvalidHandleException if the new handle is empty, has more than 30
+         *                                characters, or has white spaces.
+         * @return the ID of the created account.
+         */
+
         if (handle == null) {
             throw new InvalidHandleException("Invalid handle");
         }
@@ -70,6 +99,18 @@ public class SocialMedia implements SocialMediaPlatform {
 
     @Override
     public void removeAccount(int id) throws AccountIDNotRecognisedException {
+        /*
+         * The method removes the account with the corresponding ID from the platform.
+         * When an account is removed, all of their posts and likes should also be
+         * removed.
+         * <p>
+         * The state of this SocialMediaPlatform must be be unchanged if any exceptions
+         * are thrown.
+         *
+         * @param id ID of the account.
+         * @throws AccountIDNotRecognisedException if the ID does not match to any
+         *                                         account in the system.
+         */
         //search through all the accounts and find the one with the id
         //then remove it
         boolean found = false;
@@ -87,15 +128,29 @@ public class SocialMedia implements SocialMediaPlatform {
         if (!found) {
             throw new AccountIDNotRecognisedException("Account not found");
         }
-        // todo - remove all the posts and likes from the account
     }
 
     @Override
     public void removeAccount(String handle) throws HandleNotRecognisedException {
+        /*
+         * The method removes the account with the corresponding handle from the
+         * platform. When an account is removed, all of their posts and likes should
+         * also be removed.
+         * <p>
+         * The state of this SocialMediaPlatform must be be unchanged if any exceptions
+         * are thrown.
+         *
+         * @param handle account's handle.
+         * @throws HandleNotRecognisedException if the handle does not match to any
+         *                                      account in the system.
+         */
         // same as above but search with handle rather than id
         boolean found = false;
         for (Account account: Account.accounts) {
             if (account.getHandle().equals(handle)) {
+                for (Post post: account.posts) { //for all the post posts
+                    account.posts.remove(post); //sequentially remove all the posts
+                }
                 Account.accounts.remove(account);
                 found = true;
                 break; //we can stop looking now we have found it
@@ -104,13 +159,26 @@ public class SocialMedia implements SocialMediaPlatform {
         if (!found) {
             throw new HandleNotRecognisedException("Handle not found");
         }
-        // todo - remove all the posts and likes from the account
-
     }
 
     @Override
     public void changeAccountHandle(String oldHandle, String newHandle)
             throws HandleNotRecognisedException, IllegalHandleException, InvalidHandleException {
+        /*
+         * The method replaces the oldHandle of an account by the newHandle.
+         * <p>
+         * The state of this SocialMediaPlatform must be be unchanged if any exceptions
+         * are thrown.
+         *
+         * @param oldHandle account's old handle.
+         * @param newHandle account's new handle.
+         * @throws HandleNotRecognisedException if the old handle does not match to any
+         *                                      account in the system.
+         * @throws IllegalHandleException       if the new handle already exists in the
+         *                                      platform.
+         * @throws InvalidHandleException       if the new handle is empty, has more
+         *                                      than 30 characters, or has white spaces.
+         */
         //search through all the accounts and find the one with the handle
         //then update the handle
         boolean found = false;
@@ -142,6 +210,18 @@ public class SocialMedia implements SocialMediaPlatform {
 
     @Override
     public void updateAccountDescription(String handle, String description) throws HandleNotRecognisedException {
+        /*
+         * The method updates the description of the account with the respective handle.
+         * <p>
+         * The state of this SocialMediaPlatform must be be unchanged if any exceptions
+         * are thrown.
+         *
+         * @param handle      handle to identify the account.
+         * @param description new text for description.
+         * @throws HandleNotRecognisedException if the handle does not match to any
+         *                                      account in the system.
+         */
+
         //update the description of the account
         //search through all the accounts and find the one with the handle
         //then update the description
@@ -211,6 +291,21 @@ public class SocialMedia implements SocialMediaPlatform {
 
     @Override
     public int createPost(String handle, String message) throws HandleNotRecognisedException, InvalidPostException {
+        /*
+         * The method creates a post for the account identified by the given handle with
+         * the following message.
+         * <p>
+         * The state of this SocialMediaPlatform must be be unchanged if any exceptions
+         * are thrown.
+         *
+         * @param handle  handle to identify the account.
+         * @param message post message.
+         * @throws HandleNotRecognisedException if the handle does not match to any
+         *                                      account in the system.
+         * @throws InvalidPostException         if the message is empty or has more than
+         *                                      100 characters.
+         * @return the sequential ID of the created post.
+         */
         int postID = 0;
         boolean found = false;
 
@@ -223,7 +318,7 @@ public class SocialMedia implements SocialMediaPlatform {
 
         for (Account account: Account.accounts) {
             if (account.getHandle().equals(handle)) {
-                Post post = new Post(message, account); //create a new post
+                Post post = new Post(message, account, false); //create a new post
                 account.addPost(post); //add the post to the account
                 postID = post.getId(); //get the id of the new post
                 found = true;
@@ -271,9 +366,11 @@ public class SocialMedia implements SocialMediaPlatform {
 
         boolean found = false;
         int postID = 0;
+        Account endorsingAccount = null;
 
         for (Account account: Account.accounts) {
             if (account.getHandle().equals(handle)) {
+                endorsingAccount = account;
                 found = true;
                 break; //we can stop looking now know the account trying to endorse exists
             }
@@ -291,9 +388,9 @@ public class SocialMedia implements SocialMediaPlatform {
                     if (post.isEndorsement()) {
                         throw new NotActionablePostException("Cant endorse an endorsement");
                     }
-                    //TODO make sure the account creating the post is the correct account because it currently isnt
-                    Post newPost = new Post("EP@" + post.getHandle() + ": " + post.getMessage(), account, true); //create a new post
-                    account.addPost(newPost); //add the post to the account
+                    //TODO test this
+                    Post newPost = new Post("EP@" + post.getHandle() + ": " + post.getMessage(), endorsingAccount, true); //create a new post
+                    endorsingAccount.addPost(newPost); //add the post to the account
                     postID = newPost.getId(); //get the id of the new post
                     found = true;
                     break; //we can stop looking now know the post exists
@@ -310,7 +407,67 @@ public class SocialMedia implements SocialMediaPlatform {
     @Override
     public int commentPost(String handle, int id, String message) throws HandleNotRecognisedException,
             PostIDNotRecognisedException, NotActionablePostException, InvalidPostException {
-        // TODO Auto-generated method stub
+        /*
+         * The method creates a comment post referring to an existing post, similarly to
+         * a reply on Twitter. A comment post is a special post. It contains a reference
+         * to the post being commented upon.
+         * <p>
+         * The state of this SocialMediaPlatform must be be unchanged if any exceptions
+         * are thrown.
+         *
+         * @param handle  of the account commenting a post.
+         * @param id      of the post being commented.
+         * @param message the comment post message.
+         * @return the sequential ID of the created post.
+         * @throws HandleNotRecognisedException if the handle does not match to any
+         *                                      account in the system.
+         * @throws PostIDNotRecognisedException if the ID does not match to any post in
+         *                                      the system.
+         * @throws NotActionablePostException   if the ID refers to a endorsement post.
+         *                                      Endorsement posts are not endorsable.
+         *                                      Endorsements cannot be commented. For
+         *                                      instance, if post A is endorsed by post
+         *                                      B, and an account wants to comment B, in
+         *                                      fact, the comment must refers to A.
+         * @throws InvalidPostException         if the comment message is empty or has
+         *                                      more than 100 characters.
+         */
+        //search through all the accounts and find the one with the handle
+        //then create the endorsement post
+
+        boolean found = false;
+        int postID = 0;
+        Account commentingAccount = null;
+
+        for (Account account: Account.accounts) {
+            if (account.getHandle().equals(handle)) {
+                commentingAccount = account;
+                found = true;
+                break; //we can stop looking now know the account trying to endorse exists
+            }
+        }
+        if (!found) {
+            throw new HandleNotRecognisedException("Cant find handle");
+        }
+
+        //search through all the posts and find the one with the id
+
+        found = false;
+
+        for (Account account: Account.accounts) {
+            for (Post post: account.posts) {
+                if (post.getId() == id) {
+                    if (post.isEndorsement()) {
+                        throw new NotActionablePostException("Cant comment an endorsement");
+                    }
+                    //TODO test this
+                    //make a new comment on this post
+
+                    found = true;
+                    break; //we can stop looking now know the post exists
+                }
+            }
+        }
         return 0;
     }
 
