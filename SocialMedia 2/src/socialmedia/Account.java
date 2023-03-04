@@ -7,20 +7,22 @@ public class Account {
 
     private String handle;
     private String description;
-    private int id;
+    private final int id;
+    private int postCount;
 
     public static List<Account> accounts = new ArrayList<Account>();
-    public List<Post> posts = new ArrayList<Post>();
 
     public Account(String handle) {
         this.handle = handle;
         this.description = "";
         this.id = accounts.size();
+        this.postCount = 0;
     }
     public Account(String handle, String description) {
         this.handle = handle;
         this.description = description;
         this.id = accounts.size();
+        this.postCount = 0;
     }
 
     public String getDescription() {
@@ -38,11 +40,13 @@ public class Account {
     public int getId() {
         return id;
     }
-    public void addPost(Post post) {
-        posts.add(post);
-    }
     public int getPostCount() {
-        return posts.size();
+        return postCount;
     }
-
+    public void addPost() {
+        this.postCount++;
+    }
+    public void removePost() {
+        this.postCount--;
+    }
 }

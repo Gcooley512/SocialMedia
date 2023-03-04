@@ -5,13 +5,6 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.Objects;
 
-/**
- * BadSocialMedia is a minimally compiling, but non-functioning implementor of
- * the SocialMediaPlatform interface.
- *
- * @author Diogo Pacheco
- * @version 1.0
- */
 public class SocialMedia implements SocialMediaPlatform {
 
     @Override
@@ -113,13 +106,11 @@ public class SocialMedia implements SocialMediaPlatform {
          */
         //search through all the accounts and find the one with the id
         //then remove it
+
         boolean found = false;
+
         for (Account account: Account.accounts) {
             if (account.getId() == id) {
-                //remove all the posts
-                for (Post post: account.posts) {
-                    account.posts.remove(post);
-                }
                 Account.accounts.remove(account);
                 found = true;
                 break; //we can stop looking now we have found it
@@ -128,6 +119,11 @@ public class SocialMedia implements SocialMediaPlatform {
         if (!found) {
             throw new AccountIDNotRecognisedException("Account not found");
         }
+
+        //remove all the posts
+        Post.posts.removeIf(post -> post.getAccountId() == id);
+        //todo remove all comments and remove all endorsements
+
     }
 
     @Override
@@ -148,9 +144,6 @@ public class SocialMedia implements SocialMediaPlatform {
         boolean found = false;
         for (Account account: Account.accounts) {
             if (account.getHandle().equals(handle)) {
-                for (Post post: account.posts) { //for all the post posts
-                    account.posts.remove(post); //sequentially remove all the posts
-                }
                 Account.accounts.remove(account);
                 found = true;
                 break; //we can stop looking now we have found it
@@ -159,6 +152,9 @@ public class SocialMedia implements SocialMediaPlatform {
         if (!found) {
             throw new HandleNotRecognisedException("Handle not found");
         }
+        Post.posts.removeIf(post -> Objects.equals(post.getHandle(), handle));
+        //todo remove all comments and remove all endorsements
+
     }
 
     @Override
@@ -276,8 +272,9 @@ public class SocialMedia implements SocialMediaPlatform {
                 } else {
                     sb.append("Description: No Description \n");
                 }
-                    sb.append("Post count: [").append(account.getPostCount()).append("] \n");
-                // TODO sb.append("Endorse count: [" + account.getEndorseCount() + "] \n");
+
+                sb.append("Post count: [").append(account.getPostCount()).append("] \n");
+                // TODO sb.append("Endorse count: [" + account.getEndorseCount() + "] \n"); //number of endorsements for all posts
                 accountDetails = sb.toString();
                 found = true;
                 break; //we can stop looking now we have found it
@@ -318,9 +315,12 @@ public class SocialMedia implements SocialMediaPlatform {
 
         for (Account account: Account.accounts) {
             if (account.getHandle().equals(handle)) {
-                Post post = new Post(message, account, false); //create a new post
-                account.addPost(post); //add the post to the account
+                Post post = new Post(message, account, PostType.POST); //create a new post
+                Post.posts.add(post); //add the post to the list of posts
+
+                account.addPost(); //add one to the number of posts for the account
                 postID = post.getId(); //get the id of the new post
+
                 found = true;
                 break; //we can stop looking now we have found it
             }
@@ -368,6 +368,7 @@ public class SocialMedia implements SocialMediaPlatform {
         int postID = 0;
         Account endorsingAccount = null;
 
+        //search through all the accounts and find the one with the handle then save it so i can associate it with the new post
         for (Account account: Account.accounts) {
             if (account.getHandle().equals(handle)) {
                 endorsingAccount = account;
@@ -375,6 +376,7 @@ public class SocialMedia implements SocialMediaPlatform {
                 break; //we can stop looking now know the account trying to endorse exists
             }
         }
+
         if (!found) {
             throw new HandleNotRecognisedException("Cant find handle");
         }
@@ -382,21 +384,30 @@ public class SocialMedia implements SocialMediaPlatform {
         //search through all the posts and find the one with the id
 
         found = false;
-        for (Account account: Account.accounts) {
-            for (Post post: account.posts) {
-                if (post.getId() == id) {
-                    if (post.isEndorsement()) {
-                        throw new NotActionablePostException("Cant endorse an endorsement");
-                    }
-                    //TODO test this
-                    Post newPost = new Post("EP@" + post.getHandle() + ": " + post.getMessage(), endorsingAccount, true); //create a new post
-                    endorsingAccount.addPost(newPost); //add the post to the account
-                    postID = newPost.getId(); //get the id of the new post
-                    found = true;
-                    break; //we can stop looking now know the post exists
+        for (Post post: Post.posts) {
+            if (post.getId() == id) {
+                if (post.getPostType() == PostType.ENDORSEMENT) {
+                    throw new NotActionablePostException("Cant endorse an endorsement");
                 }
+
+                //TODO test this
+
+                Endorsement newEndorsement = new Endorsement(
+                        "EP@" +
+                        post.getHandle() +
+                        ": " +
+                        post.getMessage(),
+                        endorsingAccount,
+                        post); //create a new post
+
+                Endorsement.endorsements.add(newEndorsement); //add the post to the list of posts
+                endorsingAccount.addPost(); //add 1 to the count of posts for the account
+                postID = newEndorsement.getId(); //get the id of the new post
+                found = true;
+                break; //we can stop looking now know the post exists
             }
         }
+
         if (!found) {
             throw new PostIDNotRecognisedException("Cant find post");
         }
@@ -439,6 +450,13 @@ public class SocialMedia implements SocialMediaPlatform {
         int postID = 0;
         Account commentingAccount = null;
 
+        if (message == null || message.isEmpty()) {
+            throw new InvalidPostException("Message is empty");
+        }
+        if (message.length() > 100) {
+            throw new InvalidPostException("Message is too long");
+        }
+
         for (Account account: Account.accounts) {
             if (account.getHandle().equals(handle)) {
                 commentingAccount = account;
@@ -454,32 +472,88 @@ public class SocialMedia implements SocialMediaPlatform {
 
         found = false;
 
-        for (Account account: Account.accounts) {
-            for (Post post: account.posts) {
-                if (post.getId() == id) {
-                    if (post.isEndorsement()) {
-                        throw new NotActionablePostException("Cant comment an endorsement");
-                    }
-                    //TODO test this
-                    //make a new comment on this post
-
-                    found = true;
-                    break; //we can stop looking now know the post exists
+        for (Post post: Post.posts) {
+            if (post.getId() == id) {
+                if (post.getPostType() == PostType.ENDORSEMENT) {
+                    throw new NotActionablePostException("Cant comment an endorsement");
                 }
+                //TODO test this
+                //make a new comment on this post
+                Comment newComment = new Comment(message, commentingAccount, post);
+                Comment.comments.add(newComment);
+                commentingAccount.addPost(); //add 1 to the number of posts
+                postID = newComment.getId(); //get the id of the new post
+                found = true;
+                break; //we can stop looking now know the post exists
             }
         }
-        return 0;
+
+        if (!found) {
+            throw new PostIDNotRecognisedException("Cant find post");
+        }
+
+        return postID;
     }
 
     @Override
     public void deletePost(int id) throws PostIDNotRecognisedException {
-        // TODO Auto-generated method stub
+        /*
+         * The method removes the post from the platform. When a post is removed, all
+         * its endorsements should be removed as well. All replies to this post should
+         * be updated by replacing the reference to this post by a generic empty post.
+         * <p>
+         * The generic empty post message should be "The original content was removed
+         * from the system and is no longer available.". This empty post is just a
+         * replacement placeholder for the post which a reply refers to. Empty posts
+         * should not be linked to any account and cannot be acted upon, i.e., it cannot
+         * be available for endorsements or replies.
+         * <p>
+         * The state of this SocialMediaPlatform must be be unchanged if any exceptions
+         * are thrown.
+         *
+         * @param id ID of post to be removed.
+         * @throws PostIDNotRecognisedException if the ID does not match to any post in
+         *                                      the system.
+         */
+        //search through all the posts and find the one with the id
+        boolean found = false;
 
+        for (Post post: Post.posts) {
+            if (post.getId() == id) {
 
+                Post.posts.remove(post); //remove the post
+
+                post.getAccount().removePost(); //minus 1 from the number of posts on the account that posted it
+
+                found = true;
+                break; //we can stop looking now know the post exists
+            }
+        }
+
+        if (!found) {
+            throw new PostIDNotRecognisedException("Cant find post");
+        }
+        //TODO remove all endorsements of this post and replace all comments with a generic empty post
     }
 
     @Override
     public String showIndividualPost(int id) throws PostIDNotRecognisedException {
+        /*
+         * The method generates a formated string containing the details of a single
+         * post. The format is as follows:
+         *
+         * <pre>
+         * ID: [post ID]
+         * Account: [account handle]
+         * No. endorsements: [number of endorsements received by the post] | No. comments: [number of comments received by the post]
+         * [post message]
+         * </pre>
+         *
+         * @param id of the post to be shown.
+         * @return a formatted string containing post's details.
+         * @throws PostIDNotRecognisedException if the ID does not match to any post in
+         *                                      the system.
+         */
         // TODO Auto-generated method stub
         return null;
     }
@@ -487,23 +561,112 @@ public class SocialMedia implements SocialMediaPlatform {
     @Override
     public StringBuilder showPostChildrenDetails(int id)
             throws PostIDNotRecognisedException, NotActionablePostException {
+        /*
+         * The method builds a StringBuilder showing the details of the current post and
+         * all its children posts. The format is as follows (you can use tabs or spaces to represent indentation):
+         *
+         * <pre>
+         * {@link #showIndividualPost(int) showIndividualPost(id)}
+         * |
+         * [for reply: replies to the post sorted by ID]
+         * |  > {@link #showIndividualPost(int) showIndividualPost(reply)}
+         * </pre>
+         *
+         * See an example:
+         *
+         * <pre>
+         * ID: 1
+         * Account: user1
+         * No. endorsements: 2 | No. comments: 3
+         * I like examples.
+         * |
+         * | > ID: 3
+         *     Account: user2
+         *     No. endorsements: 0 | No. comments: 1
+         *     No more than me...
+         *     |
+         *     | > ID: 5
+         *         Account: user1
+         *         No. endorsements: 0 | No. comments: 1
+         *         I can prove!
+         *         |
+         *         | > ID: 6
+         *             Account: user2
+         *             No. endorsements: 0 | No. comments: 0
+         *             prove it
+         * | > ID: 4
+         *     Account: user3
+         *     No. endorsements: 4 | No. comments: 0
+         *     Can't you do better than this?
+         *
+         * | > ID: 7
+         *     Account: user5
+         *     No. endorsements: 0 | No. comments: 1
+         *     where is the example?
+         *     |
+         *     | > ID: 10
+         *         Account: user1
+         *         No. endorsements: 0 | No. comments: 0
+         *         This is the example!
+         * </pre>
+         *
+         * Continuing with the example, if the method is called for post ID=5
+         * ({@code showIndividualPost(5)}), the return would be:
+         *
+         * <pre>
+         * ID: 5
+         * Account: user1
+         * No. endorsements: 0 | No. comments: 1
+         * I can prove!
+         * |
+         * | > ID: 6
+         *     Account: user2
+         *     No. endorsements: 0 | No. comments: 0
+         *     prove it
+         * </pre>
+         *
+         * @param id of the post to be shown.
+         * @return a formatted StringBuilder containing the details of the post and its
+         *         children.
+         * @throws PostIDNotRecognisedException if the ID does not match to any post in
+         *                                      the system.
+         * @throws NotActionablePostException   if the ID refers to an endorsement post.
+         *                                      Endorsement posts do not have children
+         *                                      since they are not endorsable nor
+         *                                      commented.
+         */
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public int getNumberOfAccounts() {
+        /*
+         * This method returns the current total number of accounts present in the
+         * platform. Note, this is NOT the total number of accounts ever created since
+         * the current total should discount deletions.
+         *
+         * @return the total number of accounts in the platform.
+         */
         return Account.accounts.size() - 1;
     }
 
     @Override
     public int getTotalOriginalPosts() {
+        /*
+         * This method returns the current total number of original posts (i.e.,
+         * disregarding endorsements and comments) present in the platform. Note, this
+         * is NOT the total number of posts ever created since the current total should
+         * discount deletions.
+         *
+         * @return the total number of original posts in the platform.
+         */
+
         int total = 0;
-        for (Account account: Account.accounts) {
-            for (Post post: account.posts) {
-                if (!post.isEndorsement()) {
-                    total++;
-                }
+
+        for (Post post: Post.posts) {
+            if (post.getPostType() == PostType.POST) {
+                total++;
             }
         }
         return total;
@@ -511,47 +674,92 @@ public class SocialMedia implements SocialMediaPlatform {
 
     @Override
     public int getTotalEndorsmentPosts() {
+        /*
+         * This method returns the current total number of endorsement posts present in
+         * the platform. Note, this is NOT the total number of endorsements ever created
+         * since the current total should discount deletions.
+         *
+         * @return the total number of endorsement posts in the platform.
+         */
+
         int total = 0;
-        for (Account account: Account.accounts) {
-            for (Post post: account.posts) {
-                if (post.isEndorsement()) {
-                    total++;
-                }
+
+        for (Post post: Post.posts) {
+            if (post.getPostType() == PostType.ENDORSEMENT) {
+                total++;
             }
         }
-        return 0;
+        return total;
     }
 
     @Override
     public int getTotalCommentPosts() {
-        // TODO Auto-generated method stub
-        return 0;
+        /*
+         * This method returns the current total number of comments posts present in the
+         * platform. Note, this is NOT the total number of comments ever created since
+         * the current total should discount deletions.
+         *
+         * @return the total number of comments posts in the platform.
+         */
+
+        int total = 0;
+
+        for (Post post: Post.posts) {
+            if (post.getPostType() == PostType.COMMENT) {
+                total++;
+            }
+        }
+        return total;
     }
 
     @Override
     public int getMostEndorsedPost() {
+        /*
+         * This method identifies and returns the post with the most number of
+         * endorsements, a.k.a. the most popular post.
+         *
+         * @return the ID of the most popular post.
+         */
         // TODO Auto-generated method stub
         return 0;
     }
 
     @Override
     public int getMostEndorsedAccount() {
+        /*
+         * This method identifies and returns the account with the most number of
+         * endorsements, a.k.a. the most popular account.
+         *
+         * @return the ID of the most popular account.
+         */
         // TODO Auto-generated method stub
         return 0;
     }
 
     @Override
     public void erasePlatform() {
+        /*
+         * Method empties this SocialMediaPlatform of its contents and resets all
+         * internal counters.
+         */
+
         //erase all accounts and posts
         Account.accounts.clear();
-        //todo Post.posts.clear();
+        Post.posts.clear();
+        Comment.comments.clear();
+        Endorsement.endorsements.clear();
     }
 
     @Override
     public void savePlatform(String filename) throws IOException {
-        //saves the platform to a file
-        //save the account and posts
-        //save the account
+        /*
+         * Method saves this SocialMediaPlatform's contents into a serialised file, with
+         * the filename given in the argument.
+         *
+         * @param filename location of the file to be saved
+         * @throws IOException if there is a problem experienced when trying to save the
+         *                     store contents to the file
+         */
 
         FileOutputStream fos = new FileOutputStream(filename);
         ObjectOutputStream oos = new ObjectOutputStream(fos); {
@@ -562,6 +770,19 @@ public class SocialMedia implements SocialMediaPlatform {
 
     @Override
     public void loadPlatform(String filename) throws IOException, ClassNotFoundException {
+        /*
+         * Method should load and replace this SocialMediaPlatform's contents with the
+         * serialised contents stored in the file given in the argument.
+         * <p>
+         * The state of this SocialMediaPlatform's must be be unchanged if any
+         * exceptions are thrown.
+         *
+         * @param filename location of the file to be loaded
+         * @throws IOException            if there is a problem experienced when trying
+         *                                to load the store contents from the file
+         * @throws ClassNotFoundException if required class files cannot be found when
+         *                                loading
+         */
         // TODO Auto-generated method stub
         //load the platform from the file created in savePlatform
 

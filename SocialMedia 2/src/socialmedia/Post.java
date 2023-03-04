@@ -6,23 +6,26 @@ import java.util.List;
 public class Post {
 
     private static int idCounter = 0;
-    private String message;
+
+    private final String message;
     private final int id;
     private final Account account;
-    private final boolean endorsement;
-    public List<Comment> comments = new ArrayList<Comment>();
+    private final PostType postType;
 
-    public Post(String message, Account account, boolean endorsement) {
+    public static List<Post> posts = new ArrayList<Post>(); // list of all posts
+
+    public Post(String message, Account account, PostType postType) {
         this.message = message;
         this.id = idCounter++;
         this.account = account;
-        this.endorsement = endorsement;
+        this.postType = postType;
     }
     public int getId() {
         return id;
     }
-    public boolean isEndorsement() {
-        return endorsement;
+
+    public PostType getPostType() {
+        return postType;
     }
     public String getMessage() {
         return message;
@@ -30,7 +33,10 @@ public class Post {
     public String getHandle() {
         return account.getHandle();
     }
-
-
-
+    public int getAccountId() {
+        return account.getId();
+    }
+    public Account getAccount() {
+        return account;
+    }
 }
