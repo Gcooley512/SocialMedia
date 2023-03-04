@@ -3,6 +3,7 @@ package socialmedia;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.util.List;
 import java.util.Objects;
 
 public class SocialMedia implements SocialMediaPlatform {
@@ -111,19 +112,22 @@ public class SocialMedia implements SocialMediaPlatform {
 
         for (Account account: Account.accounts) {
             if (account.getId() == id) {
+
+                // removes all posts, comments and endorsements by the account
+                Post.posts.removeIf(post -> post.getAccountId() == id);
+                Comment.comments.removeIf(comment -> comment.getAccountId() == id);
+                Endorsement.endorsements.removeIf(endorsement -> endorsement.getAccountId() == id);
+
+                // removes the account
                 Account.accounts.remove(account);
                 found = true;
                 break; //we can stop looking now we have found it
             }
         }
+
         if (!found) {
             throw new AccountIDNotRecognisedException("Account not found");
         }
-
-        //remove all the posts
-        Post.posts.removeIf(post -> post.getAccountId() == id);
-        //todo remove all comments and remove all endorsements
-
     }
 
     @Override
@@ -140,10 +144,18 @@ public class SocialMedia implements SocialMediaPlatform {
          * @throws HandleNotRecognisedException if the handle does not match to any
          *                                      account in the system.
          */
+
         // same as above but search with handle rather than id
         boolean found = false;
         for (Account account: Account.accounts) {
             if (account.getHandle().equals(handle)) {
+
+                // removes all posts, comments and endorsements by the account
+                Post.posts.removeIf(post -> Objects.equals(post.getHandle(), handle));
+                Comment.comments.removeIf(comment -> Objects.equals(comment.getHandle(), handle));
+                Endorsement.endorsements.removeIf(endorsement -> Objects.equals(endorsement.getHandle(), handle));
+
+                // removes the account
                 Account.accounts.remove(account);
                 found = true;
                 break; //we can stop looking now we have found it
@@ -152,9 +164,6 @@ public class SocialMedia implements SocialMediaPlatform {
         if (!found) {
             throw new HandleNotRecognisedException("Handle not found");
         }
-        Post.posts.removeIf(post -> Objects.equals(post.getHandle(), handle));
-        //todo remove all comments and remove all endorsements
-
     }
 
     @Override
@@ -262,6 +271,12 @@ public class SocialMedia implements SocialMediaPlatform {
         boolean found = false;
         String accountDetails = "";
         StringBuilder sb = new StringBuilder();
+        int endorseCount = 0;
+        for (Post post: Post.posts) {
+            if (post.getHandle().equals(handle)) {
+                endorseCount += post.getEndorsementCount();
+            }
+        }
 
         for (Account account: Account.accounts) {
             if (account.getHandle().equals(handle)) {
@@ -273,8 +288,8 @@ public class SocialMedia implements SocialMediaPlatform {
                     sb.append("Description: No Description \n");
                 }
 
-                sb.append("Post count: [").append(account.getPostCount()).append("] \n");
-                // TODO sb.append("Endorse count: [" + account.getEndorseCount() + "] \n"); //number of endorsements for all posts
+                sb.append("Post count: [").append(account.getPostCount()).append("] \n"); //number of posts
+                sb.append("Endorse count: [").append(endorseCount).append("] \n"); //number of endorsements the account has received
                 accountDetails = sb.toString();
                 found = true;
                 break; //we can stop looking now we have found it
@@ -319,7 +334,7 @@ public class SocialMedia implements SocialMediaPlatform {
                 Post.posts.add(post); //add the post to the list of posts
 
                 account.addPost(); //add one to the number of posts for the account
-                postID = post.getId(); //get the id of the new post
+                postID = post.getID(); //get the id of the new post
 
                 found = true;
                 break; //we can stop looking now we have found it
@@ -385,7 +400,8 @@ public class SocialMedia implements SocialMediaPlatform {
 
         found = false;
         for (Post post: Post.posts) {
-            if (post.getId() == id) {
+            if (post.getID() == id) {
+
                 if (post.getPostType() == PostType.ENDORSEMENT) {
                     throw new NotActionablePostException("Cant endorse an endorsement");
                 }
@@ -400,9 +416,10 @@ public class SocialMedia implements SocialMediaPlatform {
                         endorsingAccount,
                         post); //create a new post
 
-                Endorsement.endorsements.add(newEndorsement); //add the post to the list of posts
-                endorsingAccount.addPost(); //add 1 to the count of posts for the account
-                postID = newEndorsement.getId(); //get the id of the new post
+                Endorsement.endorsements.add(newEndorsement); //add the endorsement to the list of endorsements
+                endorsingAccount.addPost(); // add 1 to the count of posts for the account
+                post.addEndorsement(newEndorsement); // add the endorsement to the list of endorsements for the Post and add 1 to the counter of endorsements on the Post
+                postID = newEndorsement.getID(); //get the id of the new endorsement post
                 found = true;
                 break; //we can stop looking now know the post exists
             }
@@ -473,7 +490,7 @@ public class SocialMedia implements SocialMediaPlatform {
         found = false;
 
         for (Post post: Post.posts) {
-            if (post.getId() == id) {
+            if (post.getID() == id) {
                 if (post.getPostType() == PostType.ENDORSEMENT) {
                     throw new NotActionablePostException("Cant comment an endorsement");
                 }
@@ -482,7 +499,7 @@ public class SocialMedia implements SocialMediaPlatform {
                 Comment newComment = new Comment(message, commentingAccount, post);
                 Comment.comments.add(newComment);
                 commentingAccount.addPost(); //add 1 to the number of posts
-                postID = newComment.getId(); //get the id of the new post
+                postID = newComment.getID(); //get the id of the new post
                 found = true;
                 break; //we can stop looking now know the post exists
             }
@@ -517,9 +534,15 @@ public class SocialMedia implements SocialMediaPlatform {
          */
         //search through all the posts and find the one with the id
         boolean found = false;
+        List<Endorsement> endorsementsList;
 
         for (Post post: Post.posts) {
-            if (post.getId() == id) {
+            if (post.getID() == id) {
+                endorsementsList = post.getEndorsements(); //get the endorsements of the post
+                for (Endorsement endorsement: endorsementsList) {
+                    Endorsement.endorsements.remove(endorsement); //remove the endorsement
+                    endorsement.getAccount().removePost(); //minus 1 from the number of posts on the account that endorsed it
+                }
 
                 Post.posts.remove(post); //remove the post
 
@@ -533,7 +556,7 @@ public class SocialMedia implements SocialMediaPlatform {
         if (!found) {
             throw new PostIDNotRecognisedException("Cant find post");
         }
-        //TODO remove all endorsements of this post and replace all comments with a generic empty post
+        //TODO replace all comments with a generic empty post
     }
 
     @Override
@@ -720,8 +743,18 @@ public class SocialMedia implements SocialMediaPlatform {
          *
          * @return the ID of the most popular post.
          */
-        // TODO Auto-generated method stub
-        return 0;
+        int currentMax = 0;
+        int currentMaxID = 0;
+
+        for (Post post: Post.posts) {
+            if (post.getPostType() == PostType.POST && post.getEndorsementCount() > currentMax) {
+                    currentMax = post.getEndorsementCount();
+                    currentMaxID = post.getID();
+
+            }
+        }
+        return currentMaxID;
+
     }
 
     @Override

@@ -7,7 +7,7 @@ public class Comment extends Post {
 
     private final Post post; // the post that this comment is associated with
 
-    public static List<Comment> comments = new ArrayList<Comment>(); // list of all comments
+    public static List<Comment> comments = new ArrayList<>(); // list of all comments
 
     public Comment(String message, Account account, Post post) {
         //the message of the comment

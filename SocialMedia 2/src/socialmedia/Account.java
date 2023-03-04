@@ -10,7 +10,7 @@ public class Account {
     private final int id;
     private int postCount;
 
-    public static List<Account> accounts = new ArrayList<Account>();
+    public static List<Account> accounts = new ArrayList<>();
 
     public Account(String handle) {
         this.handle = handle;
