@@ -7,6 +7,7 @@ public class Post {
 
     private static int idCounter = 0;
     private int endorsementCount;
+    private int commentCount;
 
     private final String message;
     private final int id;
@@ -15,6 +16,7 @@ public class Post {
 
     public static List<Post> posts = new ArrayList<>(); // list of all posts
     public List<Endorsement> endorsements = new ArrayList<>(); // list of all endorsements
+    public List<Comment> comments = new ArrayList<>(); // list of all comments
 
     public Post(String message, Account account, PostType postType) {
         this.message = message;
@@ -22,6 +24,7 @@ public class Post {
         this.account = account;
         this.postType = postType;
         this.endorsementCount = 0;
+        this.commentCount = 0;
 
     }
     /*
@@ -43,6 +46,23 @@ public class Post {
     public int getEndorsementCount() {
         return endorsementCount;
     }
+
+    //todo implement all these getters and setters
+    public void addComment(Comment comment) {
+        comments.add(comment);
+        commentCount++;
+    }
+    public void removeComment(Comment comment) {
+        comments.remove(comment);
+        commentCount--;
+    }
+    public List<Comment> getComments() {
+        return comments;
+    }
+    public int getCommentCount() {
+        return commentCount;
+    }
+    //todo up until here
 
 
 

@@ -7,6 +7,20 @@ import java.util.List;
 import java.util.Objects;
 
 public class SocialMedia implements SocialMediaPlatform {
+    /**
+     The users, i.e., accounts registered in the system, will be able to post original messages
+     and comments, which can also be endorsed by endorsement posts.
+     Accounts have a unique numerical identifier, but also a unique string handle to be more easily identified throughout
+     the system. They can have a description field to add personal information they want to share. Posts (original,
+     comments, and endorsements) have a unique numerical identifier and contain a message with up to 100-characters.
+     The post ID is a sequential number such that its ordering is a proxy for a post’s chronology. They are always associated
+     with an author, i.e., the account who posted it. To allow the creation of meaningful conversation trees, posts must keep
+     track of the list of endorsements and comments they received. Endorsements and comments are also categorized as
+     posts, but with special features. For instance, comments always have to point to another post (original or comment).
+     Endorsements automatically replicate the endorsed message and also refer to original or comment posts. Endorsements
+     are not endorsed or commented. The system should provide basic analytics such as the most popular post and the
+     most popular account.
+     */
 
     @Override
     public int createAccount(String handle) throws IllegalHandleException, InvalidHandleException {
@@ -557,6 +571,9 @@ public class SocialMedia implements SocialMediaPlatform {
             throw new PostIDNotRecognisedException("Cant find post");
         }
         //TODO replace all comments with a generic empty post
+        //make the comments on this post refer to a generic empty post
+
+
     }
 
     @Override
@@ -577,8 +594,29 @@ public class SocialMedia implements SocialMediaPlatform {
          * @throws PostIDNotRecognisedException if the ID does not match to any post in
          *                                      the system.
          */
-        // TODO Auto-generated method stub
-        return null;
+        StringBuilder sb = new StringBuilder();
+        String postDetails;
+
+
+        boolean found = false;
+
+        for (Post post: Post.posts) {
+            if (post.getID() == id) {
+                sb.append("ID: [").append(post.getID()).append("] \n");
+                sb.append("Account: [").append(post.getAccount().getHandle()).append("] \n");
+                sb.append("No. endorsements: [").append(post.getEndorsementCount()).append("] | No. comments: [").append(post.getCommentCount()).append("] \n");
+                sb.append(post.getMessage());
+                found = true;
+                break; //we can stop looking now know the post exists
+            }
+        }
+        if (!found) {
+            throw new PostIDNotRecognisedException("Cant find post");
+        }
+        //todo test
+
+        postDetails = sb.toString();
+        return postDetails;
     }
 
     @Override
