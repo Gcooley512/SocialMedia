@@ -6,6 +6,7 @@ import java.util.List;
 public class Post {
 
     private static int idCounter = 0;
+
     private int endorsementCount;
     private int commentCount;
 
@@ -31,7 +32,6 @@ public class Post {
     To allow the creation of meaningful conversation trees, posts must keep
     track of the list of endorsements and comments they received.
     */
-    //todo test
     public void addEndorsement(Endorsement endorsement) {
         endorsements.add(endorsement);
         endorsementCount++;
@@ -47,7 +47,6 @@ public class Post {
         return endorsementCount;
     }
 
-    //todo implement all these getters and setters
     public void addComment(Comment comment) {
         comments.add(comment);
         commentCount++;
@@ -62,10 +61,6 @@ public class Post {
     public int getCommentCount() {
         return commentCount;
     }
-    //todo up until here
-
-
-
     public int getID() {
         return id;
     }

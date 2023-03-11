@@ -1,13 +1,8 @@
 package socialmedia;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class Endorsement extends Post {
 
     private final Post post; // the post that this endorsement is associated with
-
-    public static List<Endorsement> endorsements = new ArrayList<>(); // list of all endorsements
 
     public Endorsement(String message, Account account, Post post) {
         //the message of the endorsement
@@ -17,6 +12,7 @@ public class Endorsement extends Post {
         //call the constructor of the parent class
         super(message, account, PostType.ENDORSEMENT);
         this.post = post;
+        post.addEndorsement(this);
     }
 
     public Post getPost() {

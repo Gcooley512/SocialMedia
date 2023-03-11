@@ -1,9 +1,6 @@
 package socialmedia;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.util.List;
 import java.util.Objects;
 
 public class SocialMedia implements SocialMediaPlatform {
@@ -120,22 +117,68 @@ public class SocialMedia implements SocialMediaPlatform {
          *                                         account in the system.
          */
         //search through all the accounts and find the one with the id
-        //then remove it
+        //remove all the comments the account has made, replace the comments with a generic response
+        //remove all the endorsements the post has made
+        //replace the comments on the posts with a generic response
+        //remove the post from the account
+        //then remove the account
 
         boolean found = false;
 
         for (Account account: Account.accounts) {
             if (account.getId() == id) {
+                //make sure the account exists so we can remove it and all its posts, comments and endorsements
+                //delete the posts in the same way which the DeletePost method does
 
-                // removes all posts, comments and endorsements by the account
-                Post.posts.removeIf(post -> post.getAccountId() == id);
-                Comment.comments.removeIf(comment -> comment.getAccountId() == id);
-                Endorsement.endorsements.removeIf(endorsement -> endorsement.getAccountId() == id);
+                for (Post post: Post.posts) {
+                    if (post.getAccountId() == id) {
 
+                        //set the post that the comments refer to to a generic empty post
+                        for (Comment comment: post.comments) {
+                            //replace any comments on this post with a generic response
+                            comment.setPost(new Post("The original content was removed from the system and is no longer available.", null, PostType.NULL));
+                            }
+
+                        //remove the endorsements
+                        for (Endorsement endorsement: post.endorsements) {
+                            endorsement.getAccount().removePost(); //remove a count of 1 from the account which posted
+                            post.removeEndorsement(endorsement); //remove the endorsement
+                            }
+
+                        //remove the post
+                        post.getAccount().removePost(); //minus 1 from the number of posts on the account that posted it
+                        Post.posts.remove(post);
+                    }
+
+                    //remove all the accounts comments
+                    for (Comment comment: post.comments) {
+                        if (comment.getAccountId() == id) {
+                            //replace any comments on this post with a generic response
+                            for (Comment comment2: comment.comments) {
+                                comment2.setPost(new Post("The original content was removed from the system and is no longer available.", null, PostType.NULL));
+                            }
+
+                            for (Endorsement endorsement: comment.endorsements) {
+                                endorsement.getAccount().removePost(); //remove a count of 1 from the account which posted
+                                comment.removeEndorsement(endorsement); //remove the endorsement
+                                }
+
+                            //remove the comment
+                            //we dont need to remove a count from the account which posted the comment as it is being deleted anyway
+                            post.removeComment(comment);
+                        }
+                    }
+
+                    for (Endorsement endorsement: post.endorsements) {
+                        if (endorsement.getAccountId() == id) {
+                            post.removeEndorsement(endorsement); //remove the endorsement
+                        }
+                    }
+                }
                 // removes the account
                 Account.accounts.remove(account);
                 found = true;
-                break; //we can stop looking now we have found it
+                break; // break now we have found the account and removed it
             }
         }
 
@@ -162,17 +205,59 @@ public class SocialMedia implements SocialMediaPlatform {
         // same as above but search with handle rather than id
         boolean found = false;
         for (Account account: Account.accounts) {
-            if (account.getHandle().equals(handle)) {
+            if (Objects.equals(account.getHandle(), handle)) {
+                //make sure the account exists so we can remove it and all its posts, comments and endorsements
+                //delete the posts in the same way which the DeletePost method does
 
-                // removes all posts, comments and endorsements by the account
-                Post.posts.removeIf(post -> Objects.equals(post.getHandle(), handle));
-                Comment.comments.removeIf(comment -> Objects.equals(comment.getHandle(), handle));
-                Endorsement.endorsements.removeIf(endorsement -> Objects.equals(endorsement.getHandle(), handle));
+                for (Post post: Post.posts) {
+                    if (Objects.equals(post.getHandle(), handle)) {
 
+                        //set the post that the comments refer to to a generic empty post
+                        for (Comment comment: post.comments) {
+                            //replace any comments on this post with a generic response
+                            comment.setPost(new Post("The original content was removed from the system and is no longer available.", null, PostType.NULL));
+                        }
+
+                        //remove the endorsements
+                        for (Endorsement endorsement: post.endorsements) {
+                            endorsement.getAccount().removePost(); //remove a count of 1 from the account which posted
+                            post.removeEndorsement(endorsement); //remove the endorsement
+                        }
+
+                        //remove the post
+                        post.getAccount().removePost(); //minus 1 from the number of posts on the account that posted it
+                        Post.posts.remove(post);
+                    }
+
+                    //remove all the accounts comments
+                    for (Comment comment: post.comments) {
+                        if (Objects.equals(comment.getAccount().getHandle(), handle)) {
+                            //replace any comments on this post with a generic response
+                            for (Comment comment2: comment.comments) {
+                                comment2.setPost(new Post("The original content was removed from the system and is no longer available.", null, PostType.NULL));
+                            }
+
+                            for (Endorsement endorsement: comment.endorsements) {
+                                endorsement.getAccount().removePost(); //remove a count of 1 from the account which posted
+                                comment.removeEndorsement(endorsement); //remove the endorsement
+                            }
+
+                            //remove the comment
+                            //we dont need to remove a count from the account which posted the comment as it is being deleted anyway
+                            post.removeComment(comment);
+                        }
+                    }
+
+                    for (Endorsement endorsement: post.endorsements) {
+                        if (Objects.equals(endorsement.getAccount().getHandle(), handle)) {
+                            post.removeEndorsement(endorsement); //remove the endorsement
+                        }
+                    }
+                }
                 // removes the account
                 Account.accounts.remove(account);
                 found = true;
-                break; //we can stop looking now we have found it
+                break; // break now we have found the account and removed it
             }
         }
         if (!found) {
@@ -359,7 +444,6 @@ public class SocialMedia implements SocialMediaPlatform {
         }
         //return the id of the new post
         return postID;
-        //TODO test
     }
 
     @Override
@@ -415,13 +499,9 @@ public class SocialMedia implements SocialMediaPlatform {
         found = false;
         for (Post post: Post.posts) {
             if (post.getID() == id) {
-
                 if (post.getPostType() == PostType.ENDORSEMENT) {
                     throw new NotActionablePostException("Cant endorse an endorsement");
                 }
-
-                //TODO test this
-
                 Endorsement newEndorsement = new Endorsement(
                         "EP@" +
                         post.getHandle() +
@@ -430,7 +510,6 @@ public class SocialMedia implements SocialMediaPlatform {
                         endorsingAccount,
                         post); //create a new post
 
-                Endorsement.endorsements.add(newEndorsement); //add the endorsement to the list of endorsements
                 endorsingAccount.addPost(); // add 1 to the count of posts for the account
                 post.addEndorsement(newEndorsement); // add the endorsement to the list of endorsements for the Post and add 1 to the counter of endorsements on the Post
                 postID = newEndorsement.getID(); //get the id of the new endorsement post
@@ -508,11 +587,11 @@ public class SocialMedia implements SocialMediaPlatform {
                 if (post.getPostType() == PostType.ENDORSEMENT) {
                     throw new NotActionablePostException("Cant comment an endorsement");
                 }
-                //TODO test this
                 //make a new comment on this post
                 Comment newComment = new Comment(message, commentingAccount, post);
-                Comment.comments.add(newComment);
+
                 commentingAccount.addPost(); //add 1 to the number of posts
+                post.addComment(newComment); //add the comment to the list of comments inside the post class
                 postID = newComment.getID(); //get the id of the new post
                 found = true;
                 break; //we can stop looking now know the post exists
@@ -548,32 +627,34 @@ public class SocialMedia implements SocialMediaPlatform {
          */
         //search through all the posts and find the one with the id
         boolean found = false;
-        List<Endorsement> endorsementsList;
-
         for (Post post: Post.posts) {
             if (post.getID() == id) {
-                endorsementsList = post.getEndorsements(); //get the endorsements of the post
-                for (Endorsement endorsement: endorsementsList) {
-                    Endorsement.endorsements.remove(endorsement); //remove the endorsement
-                    endorsement.getAccount().removePost(); //minus 1 from the number of posts on the account that endorsed it
+                //remove all the endorsements
+                for (Endorsement endorsement: post.endorsements) {
+                    endorsement.getAccount().removePost(); //remove a count of 1 from the account which posted
                 }
-
+                post.endorsements.clear(); //remove all the endorsements from the list of endorsements
+                //change the post the comments refer to to a generic empty post
+                for (Comment comment: post.comments) {
+                    comment.setPost(new Post("The original content was removed from the system and is no longer available.", null, PostType.NULL));
+                }
+                for (Endorsement endorsement: post.endorsements) {
+                    //remove a count of 1 from the account which posted and then remove the endorsement
+                    endorsement.getAccount().removePost();
+                    post.endorsements.remove(endorsement);
+                }
                 Post.posts.remove(post); //remove the post
 
                 post.getAccount().removePost(); //minus 1 from the number of posts on the account that posted it
 
                 found = true;
                 break; //we can stop looking now know the post exists
-            }
+                }
         }
 
         if (!found) {
             throw new PostIDNotRecognisedException("Cant find post");
         }
-        //TODO replace all comments with a generic empty post
-        //make the comments on this post refer to a generic empty post
-
-
     }
 
     @Override
@@ -613,8 +694,6 @@ public class SocialMedia implements SocialMediaPlatform {
         if (!found) {
             throw new PostIDNotRecognisedException("Cant find post");
         }
-        //todo test
-
         postDetails = sb.toString();
         return postDetails;
     }
@@ -731,6 +810,16 @@ public class SocialMedia implements SocialMediaPlatform {
             }
         }
         return total;
+
+
+        /*
+
+        this is the stream version of the above code
+
+            return (int) Post.posts.stream()
+                    .filter(post -> post.getPostType() == PostType.POST)
+                    .count();
+         */
     }
 
     @Override
@@ -792,7 +881,6 @@ public class SocialMedia implements SocialMediaPlatform {
             }
         }
         return currentMaxID;
-
     }
 
     @Override
@@ -803,8 +891,31 @@ public class SocialMedia implements SocialMediaPlatform {
          *
          * @return the ID of the most popular account.
          */
-        // TODO Auto-generated method stub
-        return 0;
+
+        //search for the account which has recived the most endorsements by looping through each post and checking the endorsements
+
+        //loop through each account
+        //loop through each post by the account
+        //check the endorsements of the post and add them to the total
+        //if the total is greater than the current max, set the current max to the total and set the current max id to the account id
+        //return the current max id
+
+        int currentMax = 0;
+        int currentMaxID = 0;
+        int total = 0;
+
+        for (Account account: Account.accounts) {
+            for (Post post: Post.posts) {
+                if (post.getPostType() != PostType.ENDORSEMENT && post.getAccountId() == account.getId()) {
+                    total += post.getEndorsementCount();
+                }
+            }
+            if (total > currentMax) {
+                currentMax = total;
+                currentMaxID = account.getId();
+            }
+        }
+        return currentMaxID;
     }
 
     @Override
@@ -815,10 +926,14 @@ public class SocialMedia implements SocialMediaPlatform {
          */
 
         //erase all accounts and posts
-        Account.accounts.clear();
+
+
+        for (Post post: Post.posts) {
+            post.comments.clear();
+            post.endorsements.clear();
+        }
         Post.posts.clear();
-        Comment.comments.clear();
-        Endorsement.endorsements.clear();
+        Account.accounts.clear();
     }
 
     @Override
@@ -831,12 +946,7 @@ public class SocialMedia implements SocialMediaPlatform {
          * @throws IOException if there is a problem experienced when trying to save the
          *                     store contents to the file
          */
-
-        FileOutputStream fos = new FileOutputStream(filename);
-        ObjectOutputStream oos = new ObjectOutputStream(fos); {
-            oos.writeObject(Account.accounts);
-            //todo oos.writeObject(Post.posts);
-        }
+        // TODO Auto-generated method stub
     }
 
     @Override

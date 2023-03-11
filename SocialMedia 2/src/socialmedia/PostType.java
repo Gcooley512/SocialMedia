@@ -1,5 +1,5 @@
 package socialmedia;
 
 public enum PostType {
-    COMMENT, POST, ENDORSEMENT
+    COMMENT, POST, ENDORSEMENT, NULL
 }
