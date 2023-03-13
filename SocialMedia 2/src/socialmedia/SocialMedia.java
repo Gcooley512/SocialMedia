@@ -511,7 +511,6 @@ public class SocialMedia implements SocialMediaPlatform {
                         post); //create a new post
 
                 endorsingAccount.addPost(); // add 1 to the count of posts for the account
-                post.addEndorsement(newEndorsement); // add the endorsement to the list of endorsements for the Post and add 1 to the counter of endorsements on the Post
                 postID = newEndorsement.getID(); //get the id of the new endorsement post
                 found = true;
                 break; //we can stop looking now know the post exists
@@ -591,7 +590,6 @@ public class SocialMedia implements SocialMediaPlatform {
                 Comment newComment = new Comment(message, commentingAccount, post);
 
                 commentingAccount.addPost(); //add 1 to the number of posts
-                post.addComment(newComment); //add the comment to the list of comments inside the post class
                 postID = newComment.getID(); //get the id of the new post
                 found = true;
                 break; //we can stop looking now know the post exists
@@ -874,7 +872,7 @@ public class SocialMedia implements SocialMediaPlatform {
         int currentMaxID = 0;
 
         for (Post post: Post.posts) {
-            if (post.getPostType() == PostType.POST && post.getEndorsementCount() > currentMax) {
+            if (post.getEndorsementCount() > currentMax) {
                     currentMax = post.getEndorsementCount();
                     currentMaxID = post.getID();
 

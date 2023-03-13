@@ -34,6 +34,7 @@ public class Post {
     */
     public void addEndorsement(Endorsement endorsement) {
         endorsements.add(endorsement);
+        posts.add(endorsement);
         endorsementCount++;
     }
     public void removeEndorsement(Endorsement endorsement) {
@@ -49,6 +50,7 @@ public class Post {
 
     public void addComment(Comment comment) {
         comments.add(comment);
+        posts.add(comment);
         commentCount++;
     }
     public void removeComment(Comment comment) {
