@@ -922,16 +922,7 @@ public class SocialMedia implements SocialMediaPlatform {
          * Method empties this SocialMediaPlatform of its contents and resets all
          * internal counters.
          */
-
-        //erase all accounts and posts
-
-
-        for (Post post: Post.posts) {
-            post.comments.clear();
-            post.endorsements.clear();
-        }
-        Post.posts.clear();
-        Account.accounts.clear();
+        Account.resetPlatform();
     }
 
     @Override

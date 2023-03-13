@@ -81,4 +81,7 @@ public class Post {
     public Account getAccount() {
         return account;
     }
+    public static void resetCounter() {
+        idCounter = 0;
+    }
 }
