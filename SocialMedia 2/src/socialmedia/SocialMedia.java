@@ -288,15 +288,23 @@ public class SocialMedia implements SocialMediaPlatform {
         boolean found = false;
 
         //check if new handle already exists
-        for (Account search: Account.accounts) {
-            if (search.getHandle().equals(newHandle)) {
-                throw new IllegalHandleException("Handle already exists");
-            }
+        if (newHandle == null) {
+            throw new InvalidHandleException("Invalid handle");
+        }
+        if (newHandle.isEmpty()){
+            throw new InvalidHandleException("No handle given");
+        }
+        if(newHandle.length() > 30){
+            throw new InvalidHandleException("Handle too long");
+        }
+        if(newHandle.contains(" ")){
+            throw new InvalidHandleException("Handle contains spaces");
         }
 
-        //check if new handle is valid
-        if (newHandle == null || newHandle.isEmpty() || newHandle.length() > 30 || newHandle.contains(" ")) {
-            throw new InvalidHandleException("Invalid handle");
+        for (Account account : Account.accounts) {
+            if (account.getHandle().equals(newHandle)) {
+                throw new IllegalHandleException("Handle already exists");
+            }
         }
 
 
