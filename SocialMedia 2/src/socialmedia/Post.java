@@ -1,9 +1,10 @@
 package socialmedia;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Post {
+public class Post implements Serializable  {
 
     //class variables
     private static int idCounter = 0;
