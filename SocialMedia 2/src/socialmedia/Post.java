@@ -5,6 +5,7 @@ import java.util.List;
 
 public class Post {
 
+    //class variables
     private static int idCounter = 0;
 
     private int endorsementCount;
@@ -15,10 +16,14 @@ public class Post {
     private final Account account;
     private final PostType postType;
 
-    public static List<Post> posts = new ArrayList<>(); // list of all posts
-    public List<Endorsement> endorsements = new ArrayList<>(); // list of all endorsements
-    public List<Comment> comments = new ArrayList<>(); // list of all comments
+    //static list of all posts across all accounts
+    public static List<Post> posts = new ArrayList<>();
+    //list of all endorsements associated with this post
+    public List<Endorsement> endorsements = new ArrayList<>();
+    //list of all comments associated with this post
+    public List<Comment> comments = new ArrayList<>();
 
+    //constructor
     public Post(String message, Account account, PostType postType) {
         this.message = message;
         this.id = idCounter++;
@@ -28,10 +33,8 @@ public class Post {
         this.commentCount = 0;
 
     }
-    /*
-    To allow the creation of meaningful conversation trees, posts must keep
-    track of the list of endorsements and comments they received.
-    */
+
+    //endorsement related getters and setters
     public void addEndorsement(Endorsement endorsement) {
         endorsements.add(endorsement);
         posts.add(endorsement);
@@ -48,6 +51,7 @@ public class Post {
         return endorsementCount;
     }
 
+    //comment related getters and setters
     public void addComment(Comment comment) {
         comments.add(comment);
         posts.add(comment);
@@ -63,6 +67,8 @@ public class Post {
     public int getCommentCount() {
         return commentCount;
     }
+
+    //generic getters
     public int getID() {
         return id;
     }

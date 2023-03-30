@@ -38,13 +38,24 @@ public class SocialMediaPlatformTestApp {
 
 			//platform.removeAccount(id);
 			assert (platform.getNumberOfAccounts() == 0) : "number of accounts registered in the system does not match";
-			int post1 = platform.createPost("my_handle2", "post1"); System.out.println("Post created with id: " + post1);
+			int post1 = platform.createPost("my_handle2", "this is the first post"); System.out.println("Post created with id: " + post1);
 			int post2 = platform.createPost("my_handle", "post2"); System.out.println("Post created with id: " + post2);
 
 			//user 1 comments on user 2's post
-			int comment1 = platform.commentPost("my_handle", post1, "comment1"); System.out.println("Comment created with id: " + comment1);
+			int comment1 = platform.commentPost("my_handle", post1, "this is the first comment"); System.out.println("Comment created with id: " + comment1);
 			//user 2 comments on user 1's comment
-			int comment2 = platform.commentPost("my_handle2", comment1, "comment2"); System.out.println("Comment created with id: " + comment2);
+			int comment2 = platform.commentPost("my_handle2", comment1, "this is the second comment"); System.out.println("Comment created with id: " + comment2);
+			//create another comment on user 1's post
+			int comment3 = platform.commentPost("my_handle", post1, "this is the third comment"); System.out.println("Comment created with id: " + comment3);
+			//comment on the previous comment
+			int comment4 = platform.commentPost("my_handle2", comment3, "this is the fourth comment"); System.out.println("Comment created with id: " + comment4);
+			//comment on the original post again
+			int comment5 = platform.commentPost("my_handle", post1, "this is the fifth comment"); System.out.println("Comment created with id: " + comment5);
+			//comment on the previous comment
+			int comment6 = platform.commentPost("my_handle2", comment5, "this is the sixth comment"); System.out.println("Comment created with id: " + comment6);
+			//comment on comment 3
+			int comment7 = platform.commentPost("my_handle", comment3, "this is the seventh comment"); System.out.println("Comment created with id: " + comment7);
+
 			//show individual post 1
 			String post1String = platform.showIndividualPost(post1); System.out.println("Post 1: \n" + post1String);
 			//endorse post 1
@@ -63,6 +74,13 @@ public class SocialMediaPlatformTestApp {
 			int mostPopular = platform.getMostEndorsedPost(); System.out.println("Most popular post: " + mostPopular);
 			//get most popular account
 			int mostPopularAccount = platform.getMostEndorsedAccount(); System.out.println("Most popular account: " + mostPopularAccount);
+
+			System.out.println("testing this method \n");
+			//getpostchildrendetails
+			String postChildrenDetails = platform.showPostChildrenDetails(post1).toString();
+			System.out.println("Post children details: \n" + postChildrenDetails);
+
+
 
 
 

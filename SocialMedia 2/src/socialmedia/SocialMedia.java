@@ -36,6 +36,7 @@ public class SocialMedia implements SocialMediaPlatform {
          *
          */
 
+        //throwing exceptions if the handle is invalid in some way
         if (handle == null) {
             throw new InvalidHandleException("Invalid handle");
         }
@@ -49,14 +50,18 @@ public class SocialMedia implements SocialMediaPlatform {
             throw new InvalidHandleException("Handle contains spaces");
         }
 
+        //checking if the handle already exists
         for (Account account : Account.accounts) {
              if (account.getHandle().equals(handle)) {
                 throw new IllegalHandleException("Handle already exists");
             }
         }
 
+        //creating the new account
         Account newAccount = new Account(handle);
         Account.accounts.add(newAccount);
+
+        //returning the new account's ID
         return newAccount.getId();
     }
 
@@ -78,6 +83,7 @@ public class SocialMedia implements SocialMediaPlatform {
          * @return the ID of the created account.
          */
 
+        //throwing exceptions if the handle is invalid in some way
         if (handle == null) {
             throw new InvalidHandleException("Invalid handle");
         }
@@ -96,8 +102,11 @@ public class SocialMedia implements SocialMediaPlatform {
             }
         }
 
+        //creating the new account
         Account newAccount = new Account(handle, description);
         Account.accounts.add(newAccount);
+
+        //returning the new account's ID
         return newAccount.getId();
 
     }
@@ -123,6 +132,7 @@ public class SocialMedia implements SocialMediaPlatform {
         //remove the post from the account
         //then remove the account
 
+        //flag to check if the account exists
         boolean found = false;
 
         for (Account account: Account.accounts) {
@@ -182,6 +192,7 @@ public class SocialMedia implements SocialMediaPlatform {
             }
         }
 
+        //if the account was not found throw an exception
         if (!found) {
             throw new AccountIDNotRecognisedException("Account not found");
         }
@@ -260,6 +271,8 @@ public class SocialMedia implements SocialMediaPlatform {
                 break; // break now we have found the account and removed it
             }
         }
+
+        //if the account was not found throw an exception
         if (!found) {
             throw new HandleNotRecognisedException("Handle not found");
         }
@@ -287,7 +300,7 @@ public class SocialMedia implements SocialMediaPlatform {
         //then update the handle
         boolean found = false;
 
-        //check if new handle already exists
+        //check if new handle is valid
         if (newHandle == null) {
             throw new InvalidHandleException("Invalid handle");
         }
@@ -301,6 +314,7 @@ public class SocialMedia implements SocialMediaPlatform {
             throw new InvalidHandleException("Handle contains spaces");
         }
 
+        //check if the new handle already exists
         for (Account account : Account.accounts) {
             if (account.getHandle().equals(newHandle)) {
                 throw new IllegalHandleException("Handle already exists");
@@ -308,8 +322,11 @@ public class SocialMedia implements SocialMediaPlatform {
         }
 
 
+        //update the handle
+        //search through all the accounts and find the one with the current handle
         for (Account account: Account.accounts) {
             if (account.getHandle().equals(oldHandle)) {
+                //we set the handle and then break from the loop
                 account.setHandle(newHandle);
                 found = true;
                 break; //we can stop looking now we have found it
@@ -376,8 +393,11 @@ public class SocialMedia implements SocialMediaPlatform {
         //then create the string with all details of the account
 
         boolean found = false;
-        String accountDetails = "";
+        //creating the string to return and a string builder to make it
+        String accountDetails;
         StringBuilder sb = new StringBuilder();
+
+        //search through all the posts and if it is by our account add the endorsement count to the total
         int endorseCount = 0;
         for (Post post: Post.posts) {
             if (post.getHandle().equals(handle)) {
@@ -385,19 +405,24 @@ public class SocialMedia implements SocialMediaPlatform {
             }
         }
 
+        //search through all the accounts and find the one with the handle
         for (Account account: Account.accounts) {
             if (account.getHandle().equals(handle)) {
+
+                //once we have found the right account we can create the string
                 sb.append("ID: [").append(account.getId()).append("] \n");
                 sb.append("Handle: [").append(account.getHandle()).append("] \n");
-                if (!Objects.equals(account.getDescription(), "")) {
-                    sb.append("Description: [").append(account.getDescription()).append("] \n");
-                } else {
+
+                if (Objects.equals(account.getDescription(), "")) {
+                    //if the description is empty we add a message saying there is no description
                     sb.append("Description: No Description \n");
+                } else {
+                    //otherwise, we add it to the string
+                    sb.append("Description: [").append(account.getDescription()).append("] \n");
                 }
 
                 sb.append("Post count: [").append(account.getPostCount()).append("] \n"); //number of posts
                 sb.append("Endorse count: [").append(endorseCount).append("] \n"); //number of endorsements the account has received
-                accountDetails = sb.toString();
                 found = true;
                 break; //we can stop looking now we have found it
             }
@@ -405,6 +430,8 @@ public class SocialMedia implements SocialMediaPlatform {
         if (!found) {
             throw new HandleNotRecognisedException("Cant find handle");
         }
+        //assemble the string builder into a string and return it
+        accountDetails = sb.toString();
         return accountDetails;
     }
 
@@ -428,6 +455,7 @@ public class SocialMedia implements SocialMediaPlatform {
         int postID = 0;
         boolean found = false;
 
+        //check if the message is valid
         if (message == null || message.isEmpty()) {
             throw new InvalidPostException("Message is empty");
         }
@@ -435,6 +463,8 @@ public class SocialMedia implements SocialMediaPlatform {
             throw new InvalidPostException("Message is too long");
         }
 
+        //search through all the accounts and find the one with the handle
+        //if it does not exist throw an exception
         for (Account account: Account.accounts) {
             if (account.getHandle().equals(handle)) {
                 Post post = new Post(message, account, PostType.POST); //create a new post
@@ -447,9 +477,11 @@ public class SocialMedia implements SocialMediaPlatform {
                 break; //we can stop looking now we have found it
             }
         }
+
         if (!found) {
             throw new HandleNotRecognisedException("Cant find account");
         }
+
         //return the id of the new post
         return postID;
     }
@@ -489,7 +521,7 @@ public class SocialMedia implements SocialMediaPlatform {
         int postID = 0;
         Account endorsingAccount = null;
 
-        //search through all the accounts and find the one with the handle then save it so i can associate it with the new post
+        //search through all the accounts and find the one with the handle then save it so that we can associate it with the new post
         for (Account account: Account.accounts) {
             if (account.getHandle().equals(handle)) {
                 endorsingAccount = account;
@@ -503,7 +535,7 @@ public class SocialMedia implements SocialMediaPlatform {
         }
 
         //search through all the posts and find the one with the id
-
+        //if the post we are trying to endorse is an endorsement post then throw an exception
         found = false;
         for (Post post: Post.posts) {
             if (post.getID() == id) {
@@ -567,6 +599,7 @@ public class SocialMedia implements SocialMediaPlatform {
         int postID = 0;
         Account commentingAccount = null;
 
+        //check the comment message is valid
         if (message == null || message.isEmpty()) {
             throw new InvalidPostException("Message is empty");
         }
@@ -681,6 +714,8 @@ public class SocialMedia implements SocialMediaPlatform {
          * @throws PostIDNotRecognisedException if the ID does not match to any post in
          *                                      the system.
          */
+
+        //create a string builder to build the string and initialise an empty string
         StringBuilder sb = new StringBuilder();
         String postDetails;
 
@@ -694,7 +729,7 @@ public class SocialMedia implements SocialMediaPlatform {
                 sb.append("No. endorsements: [").append(post.getEndorsementCount()).append("] | No. comments: [").append(post.getCommentCount()).append("] \n");
                 sb.append(post.getMessage());
                 found = true;
-                break; //we can stop looking now know the post exists
+                break; //we can stop looking now we have finished building the string
             }
         }
         if (!found) {
@@ -781,8 +816,66 @@ public class SocialMedia implements SocialMediaPlatform {
          *                                      since they are not endorsable nor
          *                                      commented.
          */
-        // TODO Auto-generated method stub
-        return null;
+
+        //new stringbuilder
+        //get the post
+        //check if it is an endorsement, if it is throw exception
+        //call childrenDetails on the post with the starting indent level of 0
+        //return the stringbuilder
+
+        StringBuilder sb = new StringBuilder(); //create the stringbuilder
+        boolean found = false;
+
+        for (Post currentPost: Post.posts) { //loop through all the posts to search for the one with our id
+            if (currentPost.getID() == id) {
+                found = true; //we found the post so we no longer need to throw the exception
+
+                if (currentPost.getPostType() == PostType.ENDORSEMENT) {
+                    //if the post is an endorsement then we cant show the children
+                    throw new NotActionablePostException("Endorsement posts do not have children");
+                }
+
+                //start calling the childrenDetails method
+                sb = childrenDetails(currentPost, 0, sb);
+            }
+        }
+        if (!found) {
+            throw new PostIDNotRecognisedException("Cant find post");
+        }
+
+        //for all the comments on the post call showPostChildrenDetails recursively
+        //return the string builder
+        return sb;
+
+    }
+
+    public StringBuilder childrenDetails(Post currentPost, int indentLevel, StringBuilder sb) {
+
+        int postID = currentPost.getID();
+        if (indentLevel == 0) {
+            //if the post is a top level post then we dont need to add the indent
+            sb.append("ID: ").append(postID).append("\n");
+        } else {
+            //otherwise we indent it
+            sb.append("    ".repeat(indentLevel)).append("| \n");
+            sb.append("    ".repeat(indentLevel)).append("| > ID: ").append(postID).append("\n");
+        }
+
+        //add the account handle, number of endorsements, number of comments and the message
+        sb.append("    ".repeat(indentLevel)).append("Account: ").append(currentPost.getAccount().getHandle()).append("\n");
+        sb.append("    ".repeat(indentLevel)).append("No. endorsements: ").append(currentPost.getEndorsementCount()).append(" | No. comments: ").append(currentPost.getCommentCount()).append("\n");
+        sb.append("    ".repeat(indentLevel)).append(currentPost.getMessage()).append("\n");
+
+        //if the post has comments then we call the method recursively on each of them
+        if (currentPost.getCommentCount() > 0) {
+            for (Post comment : currentPost.comments) {
+                //for each comment we call the method again with the indent level increased by 1
+                childrenDetails(comment, indentLevel + 1, sb);
+            }
+        }
+
+        //return the string builder
+        return sb;
     }
 
     @Override
@@ -794,7 +887,11 @@ public class SocialMedia implements SocialMediaPlatform {
          *
          * @return the total number of accounts in the platform.
          */
-        return Account.accounts.size() - 1;
+        int count = 0;
+        for (Account ignored : Account.accounts) {
+            count ++;
+        }
+        return count;
     }
 
     @Override
@@ -811,21 +908,12 @@ public class SocialMedia implements SocialMediaPlatform {
         int total = 0;
 
         for (Post post: Post.posts) {
+            //for each post we check if it has a PostType of POST and if it does we add 1 to the total
             if (post.getPostType() == PostType.POST) {
                 total++;
             }
         }
         return total;
-
-
-        /*
-
-        this is the stream version of the above code
-
-            return (int) Post.posts.stream()
-                    .filter(post -> post.getPostType() == PostType.POST)
-                    .count();
-         */
     }
 
     @Override
@@ -841,6 +929,7 @@ public class SocialMedia implements SocialMediaPlatform {
         int total = 0;
 
         for (Post post: Post.posts) {
+            //for each post we check if it has a PostType of ENDORSEMENT and if it does we add 1 to the total
             if (post.getPostType() == PostType.ENDORSEMENT) {
                 total++;
             }
@@ -861,6 +950,7 @@ public class SocialMedia implements SocialMediaPlatform {
         int total = 0;
 
         for (Post post: Post.posts) {
+            //for each post we check if it has a PostType of COMMENT and if it does we add 1 to the total
             if (post.getPostType() == PostType.COMMENT) {
                 total++;
             }
@@ -880,9 +970,11 @@ public class SocialMedia implements SocialMediaPlatform {
         int currentMaxID = 0;
 
         for (Post post: Post.posts) {
+            //loop through each post and check if the endorsement count is greater than the current max
             if (post.getEndorsementCount() > currentMax) {
-                    currentMax = post.getEndorsementCount();
-                    currentMaxID = post.getID();
+                //if it is then set the current max to the endorsement count and set the current max id to the post id
+                currentMax = post.getEndorsementCount();
+                currentMaxID = post.getID();
 
             }
         }
@@ -963,8 +1055,5 @@ public class SocialMedia implements SocialMediaPlatform {
          */
         // TODO Auto-generated method stub
         //load the platform from the file created in savePlatform
-
-
     }
-
 }
