@@ -1,6 +1,7 @@
 package socialmedia;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.io.FileInputStream;
@@ -97,56 +98,77 @@ public class SocialMedia implements SocialMediaPlatform {
         //remove the post from the account
         //then remove the account
 
-        //flag to check if the account exists
-        boolean found = false;
 
+
+
+        boolean found = false;
         for (Account account: Account.accounts) {
-            if (account.getId() == id) {
+            if (Objects.equals(account.getId(), id)) {
                 //make sure the account exists so we can remove it and all its posts, comments and endorsements
                 //delete the posts in the same way which the DeletePost method does
 
-                for (Post post: Post.posts) {
-                    if (post.getAccountId() == id) {
+                Iterator<Post> postIterator = Post.posts.iterator();
+                while (postIterator.hasNext()) {
+                    Post post = postIterator.next();
+                    if (Objects.equals(post.getID(), id)) {
 
+                        //if there are any comments on this post
                         //set the post that the comments refer to to a generic empty post
                         for (Comment comment: post.comments) {
                             //replace any comments on this post with a generic response
                             comment.setPost(new Post("The original content was removed from the system and is no longer available.", null, PostType.NULL));
-                            }
+                        }
 
-                        //remove the endorsements
-                        for (Endorsement endorsement: post.endorsements) {
+                        //remove the endorsements if there are any
+                        Iterator<Endorsement> endorsementIterator = post.getEndorsements().iterator();
+
+                        while (endorsementIterator.hasNext()) {
+                            Endorsement endorsement = endorsementIterator.next();
                             endorsement.getAccount().removePost(); //remove a count of 1 from the account which posted
-                            post.removeEndorsement(endorsement); //remove the endorsement
-                            }
+                            endorsementIterator.remove(); //remove the endorsement using the iterator
+                        }
 
                         //remove the post
                         post.getAccount().removePost(); //minus 1 from the number of posts on the account that posted it
-                        Post.posts.remove(post);
+                        postIterator.remove(); //remove the post using the iterator
                     }
 
-                    //remove all the accounts comments
-                    for (Comment comment: post.comments) {
-                        if (comment.getAccountId() == id) {
-                            //replace any comments on this post with a generic response
+                    //remove all the accounts comments on any post in the system
+                    //so if this account has commented on a post that another account has made
+
+                    //use an iterator to remove the comments
+                    Iterator<Comment> commentIterator = post.comments.iterator();
+                    while (commentIterator.hasNext()) {
+                        Comment comment = commentIterator.next();
+                        if (Objects.equals(comment.getID(), id)) {
+                            //replace any comments on this accounts comment with a generic response
                             for (Comment comment2: comment.comments) {
                                 comment2.setPost(new Post("The original content was removed from the system and is no longer available.", null, PostType.NULL));
                             }
 
-                            for (Endorsement endorsement: comment.endorsements) {
+                            //use an iterator to remove the endorsements
+                            Iterator<Endorsement> endorsementIterator = comment.getEndorsements().iterator();
+                            while (endorsementIterator.hasNext()) {
+                                Endorsement endorsement = endorsementIterator.next();
                                 endorsement.getAccount().removePost(); //remove a count of 1 from the account which posted
-                                comment.removeEndorsement(endorsement); //remove the endorsement
-                                }
+                                endorsementIterator.remove(); //remove the endorsement using the iterator
+                            }
 
                             //remove the comment
-                            //we dont need to remove a count from the account which posted the comment as it is being deleted anyway
-                            post.removeComment(comment);
+                            //we don't need to remove a count from the account which posted the comment as it is being deleted anyway
+                            post.removeComment();
+                            commentIterator.remove(); //remove the comment using the iterator
                         }
                     }
 
-                    for (Endorsement endorsement: post.endorsements) {
-                        if (endorsement.getAccountId() == id) {
-                            post.removeEndorsement(endorsement); //remove the endorsement
+                    //remove all endorsements by this account on any post in the system
+                    //using an iterator to remove the endorsements
+                    Iterator<Endorsement> endorsementIterator = post.endorsements.iterator();
+                    while (endorsementIterator.hasNext()) {
+                        Endorsement endorsement = endorsementIterator.next();
+                        if (Objects.equals(endorsement.getID(), id)) {
+                            post.removeEndorsement(); //remove a count of 1 from the posts' endorsement count
+                            endorsementIterator.remove(); //remove the endorsement using the iterator
                         }
                     }
                 }
@@ -173,48 +195,68 @@ public class SocialMedia implements SocialMediaPlatform {
                 //make sure the account exists so we can remove it and all its posts, comments and endorsements
                 //delete the posts in the same way which the DeletePost method does
 
-                for (Post post: Post.posts) {
+                Iterator<Post> postIterator = Post.posts.iterator();
+                while (postIterator.hasNext()) {
+                    Post post = postIterator.next();
                     if (Objects.equals(post.getHandle(), handle)) {
 
+                        //if there are any comments on this post
                         //set the post that the comments refer to to a generic empty post
                         for (Comment comment: post.comments) {
                             //replace any comments on this post with a generic response
                             comment.setPost(new Post("The original content was removed from the system and is no longer available.", null, PostType.NULL));
                         }
 
-                        //remove the endorsements
-                        for (Endorsement endorsement: post.endorsements) {
+                        //remove the endorsements if there are any
+                        Iterator<Endorsement> endorsementIterator = post.getEndorsements().iterator();
+
+                        while (endorsementIterator.hasNext()) {
+                            Endorsement endorsement = endorsementIterator.next();
                             endorsement.getAccount().removePost(); //remove a count of 1 from the account which posted
-                            post.removeEndorsement(endorsement); //remove the endorsement
+                            endorsementIterator.remove(); //remove the endorsement using the iterator
                         }
 
                         //remove the post
                         post.getAccount().removePost(); //minus 1 from the number of posts on the account that posted it
-                        Post.posts.remove(post);
+                        postIterator.remove(); //remove the post using the iterator
                     }
 
-                    //remove all the accounts comments
-                    for (Comment comment: post.comments) {
-                        if (Objects.equals(comment.getAccount().getHandle(), handle)) {
-                            //replace any comments on this post with a generic response
+                    //remove all the accounts comments on any post in the system
+                    //so if this account has commented on a post that another account has made
+
+                    //use an iterator to remove the comments
+                    Iterator<Comment> commentIterator = post.comments.iterator();
+                    while (commentIterator.hasNext()) {
+                        Comment comment = commentIterator.next();
+                        if (Objects.equals(comment.getHandle(), handle)) {
+                            //replace any comments on this accounts comment with a generic response
                             for (Comment comment2: comment.comments) {
                                 comment2.setPost(new Post("The original content was removed from the system and is no longer available.", null, PostType.NULL));
                             }
 
-                            for (Endorsement endorsement: comment.endorsements) {
+                            //use an iterator to remove the endorsements
+                            Iterator<Endorsement> endorsementIterator = comment.getEndorsements().iterator();
+                            while (endorsementIterator.hasNext()) {
+                                Endorsement endorsement = endorsementIterator.next();
                                 endorsement.getAccount().removePost(); //remove a count of 1 from the account which posted
-                                comment.removeEndorsement(endorsement); //remove the endorsement
+                                endorsementIterator.remove(); //remove the endorsement using the iterator
                             }
 
                             //remove the comment
-                            //we dont need to remove a count from the account which posted the comment as it is being deleted anyway
-                            post.removeComment(comment);
+                            //we don't need to remove a count from the account which posted the comment as it is being deleted anyway
+                            post.removeComment();
+                            commentIterator.remove(); //remove the comment using the iterator
                         }
                     }
 
-                    for (Endorsement endorsement: post.endorsements) {
-                        if (Objects.equals(endorsement.getAccount().getHandle(), handle)) {
-                            post.removeEndorsement(endorsement); //remove the endorsement
+                    //remove all endorsements by this account on any post in the system
+                    //using an iterator to remove the endorsements
+                    Iterator<Endorsement> endorsementIterator = post.endorsements.iterator();
+                    while (endorsementIterator.hasNext()) {
+                        Endorsement endorsement = endorsementIterator.next();
+                        if (Objects.equals(endorsement.getHandle(), handle)) {
+                            post.removeEndorsement(); //remove a count of 1 from the posts' endorsement count
+                            endorsementIterator.remove(); //remove the endorsement using the iterator
                         }
                     }
                 }
@@ -495,23 +537,21 @@ public class SocialMedia implements SocialMediaPlatform {
         for (Post post: Post.posts) {
             if (post.getID() == id) {
                 //remove all the endorsements
-                for (Endorsement endorsement: post.endorsements) {
+                //use an iterator to remove all the endorsements
+                Iterator<Endorsement> endorsementIterator = post.endorsements.iterator();
+                while (endorsementIterator.hasNext()) {
+                    Endorsement endorsement = endorsementIterator.next();
                     endorsement.getAccount().removePost(); //remove a count of 1 from the account which posted
+                    endorsementIterator.remove(); //remove the endorsement
                 }
-                post.endorsements.clear(); //remove all the endorsements from the list of endorsements
                 //change the post the comments refer to to a generic empty post
                 for (Comment comment: post.comments) {
                     comment.setPost(new Post("The original content was removed from the system and is no longer available.", null, PostType.NULL));
                 }
-                for (Endorsement endorsement: post.endorsements) {
-                    //remove a count of 1 from the account which posted and then remove the endorsement
-                    endorsement.getAccount().removePost();
-                    post.endorsements.remove(endorsement);
-                }
-                Post.posts.remove(post); //remove the post
 
                 post.getAccount().removePost(); //minus 1 from the number of posts on the account that posted it
 
+                Post.posts.remove(post); //remove the post
                 found = true;
                 break; //we can stop looking now know the post exists
                 }
@@ -759,13 +799,13 @@ public class SocialMedia implements SocialMediaPlatform {
          * @throws ClassNotFoundException if required class files cannot be found when
          *                                loading
          */
-        // TODO Auto-generated method stub
+
         //load the platform from the file created in savePlatform
 
         ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filename));
 
         try {
-            List<Post> posts = (List<Post>) ois.readObject();
+            Post.posts = (List<Post>) ois.readObject();
             List<Account> accounts = (List<Account>) ois.readObject();
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();

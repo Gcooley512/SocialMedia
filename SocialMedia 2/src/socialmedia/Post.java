@@ -41,8 +41,9 @@ public class Post implements Serializable  {
         posts.add(endorsement);
         endorsementCount++;
     }
-    public void removeEndorsement(Endorsement endorsement) {
-        endorsements.remove(endorsement);
+    public void removeEndorsement() {
+        //dont need to reference the endorsement because it is already in the list of endorsements
+        //if we remove it from the list here it creates a concurrent modification exception
         endorsementCount--;
     }
     public List<Endorsement> getEndorsements() {
@@ -58,8 +59,9 @@ public class Post implements Serializable  {
         posts.add(comment);
         commentCount++;
     }
-    public void removeComment(Comment comment) {
-        comments.remove(comment);
+    public void removeComment() {
+        //dont need to reference the comment because it is already in the list of comments
+        //if we remove it from the list here it creates a concurrent modification exception
         commentCount--;
     }
     public List<Comment> getComments() {
