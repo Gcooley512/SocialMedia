@@ -1,0 +1,9 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="SocialMedia:jar">
+    <output-path>$PROJECT_DIR$/SocialMedia 2/bin/socialmedia/artifacts/SocialMedia_jar</output-path>
+    <root id="archive" name="SocialMedia.jar">
+      <element id="module-output" name="SocialMedia" />
+      <element id="library" level="module" name="JUnit4" module-name="SocialMedia" />
+    </root>
+  </artifact>
+</component>
