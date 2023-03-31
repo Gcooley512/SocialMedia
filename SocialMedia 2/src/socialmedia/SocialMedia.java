@@ -28,22 +28,28 @@ public class SocialMedia implements SocialMediaPlatform {
     @Override
     public int createAccount(String handle) throws IllegalHandleException, InvalidHandleException {
 
-        //throwing exceptions if the handle is invalid in some way
+        //throwing exceptions if the handle is invalid
+
+        //if the handle hasn't been specified
         if (handle == null) {
             throw new InvalidHandleException("Invalid handle");
         }
+        //if the handle is an empty string
         if (handle.isEmpty()){
             throw new InvalidHandleException("No handle given");
         }
+        //if the handle length is greater than 30
         if(handle.length() > 30){
             throw new InvalidHandleException("Handle too long");
         }
+        //if the handle contains any whitespace
         if(handle.contains(" ")){
             throw new InvalidHandleException("Handle contains spaces");
         }
 
-        //checking if the handle already exists
+        //checks for duplicate handle identifiers in all existing accounts
         for (Account account : Account.accounts) {
+            //if the handle already exists throw an exception
              if (account.getHandle().equals(handle)) {
                 throw new IllegalHandleException("Handle already exists");
             }
@@ -60,27 +66,35 @@ public class SocialMedia implements SocialMediaPlatform {
     @Override
     public int createAccount(String handle, String description) throws IllegalHandleException, InvalidHandleException {
 
-        //throwing exceptions if the handle is invalid in some way
+        //throwing exceptions if the handle is invalid
+
+        //if the handle hasn't been specified
         if (handle == null) {
             throw new InvalidHandleException("Invalid handle");
         }
+        //if the handle is an empty string
         if (handle.isEmpty()){
             throw new InvalidHandleException("No handle given");
         }
+        //if the handle length is greater than 30
         if(handle.length() > 30){
             throw new InvalidHandleException("Handle too long");
         }
+        //if the handle contains any whitespace
         if(handle.contains(" ")){
             throw new InvalidHandleException("Handle contains spaces");
         }
+
+        //checks for duplicate handle identifiers in all existing accounts
         for (Account account : Account.accounts) {
+            //if the handle already exists throw an exception
             if (account.getHandle().equals(handle)) {
                 throw new IllegalHandleException("Handle already exists");
             }
         }
 
         //creating the new account
-        Account newAccount = new Account(handle, description);
+        Account newAccount = new Account(handle);
         Account.accounts.add(newAccount);
 
         //returning the new account's ID
@@ -99,21 +113,22 @@ public class SocialMedia implements SocialMediaPlatform {
         //then remove the account
 
 
-
-
         boolean found = false;
+        //checking through all existing accounts
         for (Account account: Account.accounts) {
             if (Objects.equals(account.getId(), id)) {
                 //make sure the account exists so we can remove it and all its posts, comments and endorsements
                 //delete the posts in the same way which the DeletePost method does
 
+                //Iterator is used so that if a post is deleted the pointer doesn't lose its sequential position
+                //loops though existing posts
                 Iterator<Post> postIterator = Post.posts.iterator();
                 while (postIterator.hasNext()) {
                     Post post = postIterator.next();
                     if (Objects.equals(post.getID(), id)) {
 
                         //if there are any comments on this post
-                        //set the post that the comments refer to to a generic empty post
+                        //set the post that the comments refer to a generic empty post
                         for (Comment comment: post.comments) {
                             //replace any comments on this post with a generic response
                             comment.setPost(new Post("The original content was removed from the system and is no longer available.", null, PostType.NULL));
@@ -124,12 +139,11 @@ public class SocialMedia implements SocialMediaPlatform {
 
                         while (endorsementIterator.hasNext()) {
                             Endorsement endorsement = endorsementIterator.next();
-                            endorsement.getAccount().removePost(); //remove a count of 1 from the account which posted
+                            endorsement.getAccount().removePost(); //decrements 1  from the account endorsement counter which posted
                             endorsementIterator.remove(); //remove the endorsement using the iterator
                         }
 
-                        //remove the post
-                        post.getAccount().removePost(); //minus 1 from the number of posts on the account that posted it
+                        post.getAccount().removePost(); //decrements 1 from the number of posts on the account that posted it
                         postIterator.remove(); //remove the post using the iterator
                     }
 
@@ -652,6 +666,7 @@ public class SocialMedia implements SocialMediaPlatform {
     public int getNumberOfAccounts() {
 
         int count = 0;
+        //increments counter for each account found
         for (Account ignored : Account.accounts) {
             count ++;
         }
@@ -664,7 +679,8 @@ public class SocialMedia implements SocialMediaPlatform {
         int total = 0;
 
         for (Post post: Post.posts) {
-            //for each post we check if it has a PostType of POST and if it does we add 1 to the total
+            //for each post we check if it has a PostType of POST and only POST
+            //If so, add 1 to the total
             if (post.getPostType() == PostType.POST) {
                 total++;
             }
@@ -721,24 +737,21 @@ public class SocialMedia implements SocialMediaPlatform {
     @Override
     public int getMostEndorsedAccount() {
 
-        //search for the account which has recived the most endorsements by looping through each post and checking the endorsements
-
-        //loop through each account
-        //loop through each post by the account
-        //check the endorsements of the post and add them to the total
-        //if the total is greater than the current max, set the current max to the total and set the current max id to the account id
-        //return the current max id
 
         int currentMax = 0;
         int currentMaxID = 0;
         int total = 0;
 
+        //checks for each account
         for (Account account: Account.accounts) {
+            //checks for each post attributed to the account
             for (Post post: Post.posts) {
+                //increments endorsement counter only when endorsement is of correct type
                 if (post.getPostType() != PostType.ENDORSEMENT && post.getAccountId() == account.getId()) {
                     total += post.getEndorsementCount();
                 }
             }
+            //updates the total
             if (total > currentMax) {
                 currentMax = total;
                 currentMaxID = account.getId();
@@ -750,20 +763,13 @@ public class SocialMedia implements SocialMediaPlatform {
     @Override
     public void erasePlatform() {
 
+        //erases all internal counters in social media
         Account.resetPlatform();
 
     }
 
     @Override
     public void savePlatform(String filename) throws IOException {
-        /*
-         * Method saves this SocialMediaPlatform's contents into a serialised file, with
-         * the filename given in the argument.
-         *
-         * @param filename location of the file to be saved
-         * @throws IOException if there is a problem experienced when trying to save the
-         *                     store contents to the file
-         */
 
         ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(filename));
 
@@ -786,19 +792,6 @@ public class SocialMedia implements SocialMediaPlatform {
 
     @Override
     public void loadPlatform(String filename) throws IOException, ClassNotFoundException {
-        /*
-         * Method should load and replace this SocialMediaPlatform's contents with the
-         * serialised contents stored in the file given in the argument.
-         * <p>
-         * The state of this SocialMediaPlatform's must be be unchanged if any
-         * exceptions are thrown.
-         *
-         * @param filename location of the file to be loaded
-         * @throws IOException            if there is a problem experienced when trying
-         *                                to load the store contents from the file
-         * @throws ClassNotFoundException if required class files cannot be found when
-         *                                loading
-         */
 
         //load the platform from the file created in savePlatform
 
